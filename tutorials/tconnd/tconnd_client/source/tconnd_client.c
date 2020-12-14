@@ -32,7 +32,7 @@
 #define ROBOT_PROTO_LEN 124
 
 #define BLOCK_SIZE 65536
-#define MAX_ROBOT_NUM 1024 
+#define MAX_ROBOT_NUM 1024
 
 static int sndbuf = 10000000;
 static int rcvbuf = 10000000;
@@ -56,7 +56,7 @@ volatile int g_working;
 typedef struct robot_s
 {
     int id;
-    
+
     int socketfd;
 	packet_buff_t packet_buff;
 
@@ -68,7 +68,7 @@ typedef struct robot_s
 	uint64_t total_send;
 	uint64_t start_time;
 	uint64_t start_size;
-	
+
 	uint64_t total_recv;
 
     uint32_t lost_connection;
@@ -118,9 +118,9 @@ static void robot_open_connection(robot_t *self)
         ERROR_PRINT("robot [%d] socket errno [%d], %s.", self->id, errno, strerror(errno));
 		exit(1);
     }
-    
+
     if(setsockopt(self->socketfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf)) == -1)
-	{	
+	{
         ERROR_PRINT("robot [%d] setsockopt errno[%d], %s.", self->id, errno, strerror(errno));
 		exit(1);
 	}
@@ -130,7 +130,7 @@ static void robot_open_connection(robot_t *self)
         ERROR_PRINT("robot [%d] setsockopt errno[%d], %s.", self->id, errno, strerror(errno));
 		exit(1);
 	}
-	
+
     nb = 1;
 	if(ioctl(self->socketfd, FIONBIO, &nb) == -1)
 	{
@@ -166,7 +166,7 @@ static void robot_close_connection(robot_t *self)
 static bool robot_send(robot_t *self, const robot_proto_t *msg)
 {
 	size_t send_size, total_size;
-    
+
 	self->packet_buff.packet_head = sizeof(robot_proto_t);
 	memcpy(self->packet_buff.packet + PACKET_HEAD_LENGTH, msg, sizeof(robot_proto_t));
 	total_size = PACKET_HEAD_LENGTH + sizeof(robot_proto_t);
@@ -240,7 +240,7 @@ static void robot_test_login(robot_t *self)
 	uint64_t rtt;
 
 
-	robot_open_connection(self);	
+	robot_open_connection(self);
 	start_time = get_current_ms();
 	start_size = self->total_send;
 
@@ -257,8 +257,8 @@ static void robot_test_login(robot_t *self)
 				goto idle;
 			}
 		}
-		
-		
+
+
 		req.message_id = e_robot_login_req;
 		snprintf(req.message_body.login_req.name, ROBOT_STR_LEN, "robot_%d", self->id);
 		snprintf(req.message_body.login_req.pass, ROBOT_STR_LEN, "%d", rand_num);
@@ -276,7 +276,7 @@ static void robot_test_login(robot_t *self)
 			goto error_ret;
 		}
 		recv_time = get_current_ms();
-		
+
 		if(rsp.message_id != e_robot_login_rsp)
 		{
 			ERROR_PRINT("message_id mismatch.");
@@ -292,7 +292,7 @@ static void robot_test_login(robot_t *self)
 			ERROR_PRINT("sid mismatch.");
 			exit(1);
 		}
-		
+
 		rtt = recv_time - send_time;
 
 
@@ -382,7 +382,7 @@ static TERROR_CODE process(void *arg)
 	if(current_time - last_print_time >= PRINT_INTERVAL_MS)
 	{
 		last_print_time = current_time;
-		
+
 	    INFO_PRINT("rtt(min, max) : %ums, %ums, speed(total, total / %u) : %.2lfkb/s %.2lfkb/s", rtt_min, rtt_max
 		    , g_config.robot_num , total_speed, total_speed / g_config.robot_num);
 	}
@@ -410,7 +410,7 @@ static void fini()
 	uint64_t testing_time;
 
 	g_working = FALSE;
-    
+
 
 	for(i = 0; i < g_config.robot_num; ++i)
 	{
@@ -427,7 +427,7 @@ static void fini()
 	for(i = 0; i < g_config.robot_num; ++i)
 	{
 		rtt_total += g_robot[i].rtt_total;
-		rtt_count += g_robot[i].rtt_count;		
+		rtt_count += g_robot[i].rtt_count;
 		if(g_robot[i].rtt_min < rtt_min)
 		{
 		    rtt_min = g_robot[i].rtt_min;
@@ -465,7 +465,7 @@ static void fini()
 
 int main(int argc, char *argv[])
 {
-	int ret;
+	int ret = 0;
 	tapp_load_config(&g_config, argc, argv, (tapp_xml_reader_t)tlibc_read_tconnd_robot_config);
 
 	init();
@@ -481,6 +481,5 @@ int main(int argc, char *argv[])
 		ret = 1;
 	}
 	fini();
-	return 0;
+	return ret;
 }
-

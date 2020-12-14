@@ -31,17 +31,17 @@ static TERROR_CODE init()
     {
         goto tlog_fini;
     }
-    
+
     if(tconnd_mempool_init() != E_TS_NOERROR)
     {
         goto tlog_fini;
     }
-    
+
     if(tconnd_tbus_init() != E_TS_NOERROR)
     {
         goto mempool_fini;
     }
-    
+
     if(tconnd_epoll_init() != E_TS_NOERROR)
     {
         goto tbus_fini;
@@ -55,7 +55,7 @@ static TERROR_CODE init()
 
     INFO_PRINT("tconnd init succeed.");
     return E_TS_NOERROR;
-    
+
 epoll_fini:
     tconnd_epoll_fini();
 tbus_fini:
@@ -95,9 +95,9 @@ static TERROR_CODE process(void *arg)
         goto done;
     }
 
-    
+
     tconnd_timer_process();
-    
+
 done:
     return ret;
 
@@ -115,14 +115,14 @@ static void fini()
 int main(int argc, char **argv)
 {
     int ret = 0;
-    
+
     tapp_load_config(&g_config, argc, argv, (tapp_xml_reader_t)tlibc_read_tconnd_config);
 
-    
+
 	if(init() != E_TS_NOERROR)
 	{
 		goto ERROR_RET;
-	}   
+	}
 
     if(tapp_loop(TAPP_IDLE_USEC, TAPP_IDLE_LIMIT, NULL, NULL, NULL, NULL
                 , process, NULL
@@ -137,8 +137,7 @@ int main(int argc, char **argv)
 
 	fini();
 
-	return 0;
+	return ret;
 ERROR_RET:
 	return 1;
 }
-
